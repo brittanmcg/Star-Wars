@@ -1,12 +1,12 @@
-import React, { Fragment } from "react";
-import { v4 as uuidv4 } from "uuid";
+import React, { Fragment } from 'react';
 
 function Select(props) {
-  const { data, handleChange, selectId } = props;
-  const newKey = uuidv4();
+  const { data, handleChange, selectId, classNames } = props;
   return (
     <Fragment>
-      <select onChange={(e) => handleChange(e, selectId)}>
+      <select
+        onChange={(e) => handleChange(e, selectId)}
+        className={classNames}>
         {data.map((character, i) => {
           return (
             <option key={i} value={character.name}>

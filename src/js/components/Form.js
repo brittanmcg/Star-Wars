@@ -1,16 +1,16 @@
-import React, { Component } from "react";
-import ReactDOM from "react-dom";
-import Select from "./Select";
+import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
+import Select from './Select';
 
 // could have brought in lodash to avoid this, but didn't want to add the dependency
 Array.prototype.diff = function (arr2) {
-  var ret = [];
-  for (var i in this) {
+  const arr = [];
+  for (let i in this) {
     if (arr2.indexOf(this[i]) > -1) {
-      ret.push(this[i]);
+      arr.push(this[i]);
     }
   }
-  return ret;
+  return arr;
 };
 
 class Form extends Component {
@@ -19,19 +19,26 @@ class Form extends Component {
 
     this.state = {
       characters: [],
+      films: [],
+      vehicles: [],
+      starships: [],
+      textDiv: false,
     };
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.getSimilarItemText = this.getSimilarItemText.bind(this);
+    this.openTextDiv = this.openTextDiv.bind(this);
   }
 
   componentDidMount() {
-    const url = "http://swapi.dev/api/people";
-    const characters = JSON.parse(localStorage.getItem("swapiCharacters"));
+    const url = 'http://swapi.dev/api/people';
+    const characters = JSON.parse(localStorage.getItem('swapiCharacters'));
 
     this.setState({
       characters,
+      valueOne: 'Luke Skywalker',
+      valueTwo: 'Luke Skywalker',
     });
 
     if (!characters) {
@@ -55,7 +62,7 @@ class Form extends Component {
               characters: res.map((obj) => obj.results).flat(Infinity),
             },
             localStorage.setItem(
-              "swapiCharacters",
+              'swapiCharacters',
               JSON.stringify(res.map((obj) => obj.results).flat(Infinity))
             )
           );
@@ -63,12 +70,20 @@ class Form extends Component {
     }
   }
 
+  openTextDiv() {
+    if (!this.state.textDiv)
+      this.setState({
+        textDiv: true,
+      });
+  }
+
   handleChange(event, selectId) {
     const { value } = event.target;
     this.setState(() => {
       return {
-        valueOne: selectId === "1" ? value : this.state.valueOne,
-        valueTwo: selectId === "2" ? value : this.state.valueTwo,
+        textDiv: false,
+        valueOne: selectId === '1' ? value : this.state.valueOne,
+        valueTwo: selectId === '2' ? value : this.state.valueTwo,
       };
     });
   }
@@ -81,6 +96,7 @@ class Form extends Component {
       });
     });
     await Promise.all(promises).then((data, err) => {
+      if (err) console.log(err);
       data.forEach((res) => {
         similarItemsData.push(res);
       });
@@ -119,7 +135,6 @@ class Form extends Component {
   }
 
   render() {
-    if (!this.state.characters) return null;
     return (
       <form onSubmit={this.handleSubmit}>
         <h2>Please select two characters</h2>
@@ -128,6 +143,7 @@ class Form extends Component {
             data={this.state.characters}
             handleChange={this.handleChange}
             selectId="1"
+            classNames="select-css"
           />
         )}
         {this.state.characters && (
@@ -135,31 +151,55 @@ class Form extends Component {
             data={this.state.characters}
             handleChange={this.handleChange}
             selectId="2"
+            classNames="select-css"
           />
         )}
-        <div>
-          {this.state.valueOne && this.state.valueTwo && (
-            <p>
-              {this.state.valueOne} and {this.state.valueTwo} were seen together
-              in{" "}
-              {this.state.films &&
-                this.state.films.map((films, i) => {
-                  return <span key={i}>{films.title},</span>;
-                })}
-              and they shared{" "}
-              {this.state.vehicles &&
-                this.state.vehicles.map((vehicle, i) => {
-                  return <span key={i}>{vehicle.name},</span>;
-                })}
-              they were also in the following starships
-              {this.state.starships &&
-                this.state.starships.map((starship, i) => {
-                  return <span key={i}>{starship.name},</span>;
-                })}
-            </p>
-          )}
-        </div>
-        <button>Submit</button>
+        {this.state.textDiv && this.state.films.length > 0 && (
+          <div>
+            {this.state.valueOne && this.state.valueTwo && (
+              <p>
+                <b>{this.state.valueOne}</b> and <b>{this.state.valueTwo}</b>{' '}
+                were seen together in{' '}
+                {this.state.films &&
+                  this.state.films.map((films, i) => {
+                    return (
+                      <span key={i}>
+                        <b>{films.title}</b>,
+                      </span>
+                    );
+                  })}
+                {this.state.vehicles.length > 0 && (
+                  <span>and they shared </span>
+                )}
+                {this.state.vehicles &&
+                  this.state.vehicles.map((vehicle, i) => {
+                    return (
+                      <span key={i}>
+                        <b>{vehicle.name}</b>,
+                      </span>
+                    );
+                  })}
+                {this.state.starships.length > 0 && (
+                  <span>they were also in the following starships </span>
+                )}
+                {this.state.starships &&
+                  this.state.starships.map((starship, i) => {
+                    return (
+                      <span key={i}>
+                        <b>{starship.name}</b>,
+                      </span>
+                    );
+                  })}
+              </p>
+            )}
+          </div>
+        )}
+        {this.state.textDiv && this.state.films.length < 1 && (
+          <div>
+            <p>These characters never shared a film</p>
+          </div>
+        )}
+        <button onClick={this.openTextDiv}>Submit</button>
       </form>
     );
   }
@@ -167,5 +207,5 @@ class Form extends Component {
 
 export default Form;
 
-const wrapper = document.getElementById("container");
+const wrapper = document.getElementById('container');
 wrapper ? ReactDOM.render(<Form />, wrapper) : false;
